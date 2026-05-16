@@ -15,7 +15,8 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        go: ["1.25.x", "1.26.x"]
+        # go.mod declares `go 1.26`; older toolchains can't run the module.
+        go: ["1.26.x"]
     steps:
       - uses: actions/checkout@v6
 

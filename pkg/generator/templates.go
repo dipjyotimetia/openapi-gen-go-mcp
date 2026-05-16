@@ -232,7 +232,9 @@ func goQuote(s string) string {
 			b.WriteString(`\t`)
 		default:
 			if r < 0x20 {
-				b.WriteString(`\x` + hex2(byte(r)))
+				// r is guaranteed < 0x20 by the predicate above; mask to
+				// satisfy gosec's rune→byte narrowing check.
+				b.WriteString(`\x` + hex2(byte(r&0xff)))
 			} else {
 				b.WriteRune(r)
 			}

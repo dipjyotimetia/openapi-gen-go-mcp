@@ -25,7 +25,19 @@ linters:
         - ifElseChain
     gosec:
       excludes:
-        - G306 # 0o644 is intentional for generator output
+        - G306 # 0o644 file permissions are intentional for generator output
+        - G301 # 0o755 directory permissions are intentional for generator output
+
+  # Tests build subprocess commands and read fixtures from variable paths
+  # to exercise the CLI surface — gosec's subprocess (G204) and file-include
+  # (G304) checks are designed for production code, not the test harness.
+  # The mock HTTP servers in internal/e2e also produce JSON with simple
+  # string concatenation; that's not an XSS concern (G705) for test fixtures.
+  exclusions:
+    rules:
+      - path: _test\.go
+        linters:
+          - gosec
 
 issues:
   max-issues-per-linter: 0

@@ -36,12 +36,13 @@ var cliPath string
 
 // TestMain builds the CLI binary into a package-wide temp directory before
 // any test runs, so every test reuses the same binary instead of rebuilding.
+// Cleanup runs before os.Exit because deferred functions do not — see
+// gocritic's exitAfterDefer check.
 func TestMain(m *testing.M) {
 	dir, err := os.MkdirTemp("", "openapi-gen-go-mcp-e2e-")
 	if err != nil {
 		panic("create temp dir: " + err.Error())
 	}
-	defer os.RemoveAll(dir)
 
 	cliPath = filepath.Join(dir, "openapi-gen-go-mcp")
 	cmd := exec.Command("go", "build", "-o", cliPath, "./cmd/openapi-gen-go-mcp")
@@ -49,10 +50,13 @@ func TestMain(m *testing.M) {
 		cmd.Dir = filepath.Clean(filepath.Join(cwd, "..", ".."))
 	}
 	if out, err := cmd.CombinedOutput(); err != nil {
-		os.RemoveAll(dir)
+		_ = os.RemoveAll(dir)
 		panic("build CLI: " + err.Error() + "\n" + string(out))
 	}
-	os.Exit(m.Run())
+
+	code := m.Run()
+	_ = os.RemoveAll(dir)
+	os.Exit(code)
 }
 
 func runCLI(t *testing.T, args ...string) (stdout, stderr string, err error) {

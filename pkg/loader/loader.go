@@ -31,7 +31,9 @@ import (
 // representation. Swagger 2.0 specs are detected and converted automatically.
 // The returned document is validated.
 func Load(ctx context.Context, path string) (*openapi3.T, error) {
-	raw, err := os.ReadFile(path)
+	// path is the user-supplied OpenAPI spec — reading it is the function's
+	// entire purpose.
+	raw, err := os.ReadFile(path) // #nosec G304
 	if err != nil {
 		return nil, fmt.Errorf("read %s: %w", path, err)
 	}

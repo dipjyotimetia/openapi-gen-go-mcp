@@ -58,13 +58,13 @@ func ListOperations(w io.Writer, doc *openapi3.T) {
 		return rows[i].method < rows[j].method
 	})
 
-	fmt.Fprintf(w, "%-7s  %-40s  %s\n", "METHOD", "PATH", "OPERATION ID")
+	_, _ = fmt.Fprintf(w, "%-7s  %-40s  %s\n", "METHOD", "PATH", "OPERATION ID")
 	for _, r := range rows {
 		opID := r.opID
 		if opID == "" {
 			opID = "(missing)"
 		}
-		fmt.Fprintf(w, "%-7s  %-40s  %s\n", r.method, r.path, opID)
+		_, _ = fmt.Fprintf(w, "%-7s  %-40s  %s\n", r.method, r.path, opID)
 	}
 }
 
