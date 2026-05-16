@@ -39,13 +39,15 @@ docker run --rm -v "$PWD":/workspace ghcr.io/dipjyotimetia/openapi-gen-go-mcp:la
     -client-import github.com/example/petstore
 ```
 
-**From source** (Go 1.24+; tracks `main`)
+**From source** (Go 1.26+)
 
 ```bash
 go install github.com/dipjyotimetia/openapi-gen-go-mcp/cmd/openapi-gen-go-mcp@latest
+# or pin to a specific release
+go install github.com/dipjyotimetia/openapi-gen-go-mcp/cmd/openapi-gen-go-mcp@v0.1.0
 ```
 
-Verify with `openapi-gen-go-mcp -version`. Generated code targets Go 1.24+.
+Verify with `openapi-gen-go-mcp -version`. Generated code targets Go 1.23+.
 
 ## Quick start
 
@@ -96,6 +98,7 @@ openapi-gen-go-mcp [flags]
   -openai-compat          emit OpenAI-tool-compatible JSON Schema
   -list                   print the operations found in the spec and exit
   -emit-v3 PATH           write the spec as OpenAPI 3 YAML to PATH (Swagger 2.0 conversion helper)
+  -version                print version information and exit
 ```
 
 ## Swagger 2.0 workflow
@@ -120,6 +123,18 @@ The same generated `*.mcp.go` works with either backend — change only the runt
 | [`mark3labs/mcp-go`](https://github.com/mark3labs/mcp-go) | `pkg/runtime/mark3labs` | `raw, s := mark3labs.NewServer(name, version)` |
 
 See [`examples/petstore`](examples/petstore) and [`examples/petstore-mark3labs`](examples/petstore-mark3labs).
+
+## Examples
+
+| Directory | What it demonstrates |
+|---|---|
+| [`examples/petstore`](examples/petstore) | OpenAPI 3.0, JSON bodies, `go-sdk` backend |
+| [`examples/petstore-mark3labs`](examples/petstore-mark3labs) | Same spec on the `mark3labs/mcp-go` backend |
+| [`examples/swagger2-petstore`](examples/swagger2-petstore) | Swagger 2.0 input via `-emit-v3` conversion |
+| [`examples/users-api`](examples/users-api) | UUID path params, required headers, PUT / PATCH / DELETE |
+| [`examples/library`](examples/library) | Swagger 2.0 end-to-end (load → convert → generate) |
+| [`examples/complex`](examples/complex) | Recursive `$ref`, oneOf / allOf, enums, date-time / uuid formats |
+| [`examples/non-json-bodies`](examples/non-json-bodies) | Form-urlencoded, multipart (with base64 file fields), octet-stream, text/plain, XML |
 
 ## Tool input schema shape
 
