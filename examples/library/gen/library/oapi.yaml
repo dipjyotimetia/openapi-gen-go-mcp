@@ -1,0 +1,5 @@
+package: library
+generate:
+  models: true
+  client: true
+output: library.gen.go

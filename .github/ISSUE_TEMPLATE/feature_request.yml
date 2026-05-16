@@ -1,0 +1,26 @@
+name: Feature request
+description: Suggest a new capability or improvement
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What are you trying to accomplish that the current tool doesn't support?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Optional. If you have an idea for the shape of the feature (flag, API, behaviour), describe it here.
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Workarounds you've tried, related tools, prior art.
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Links to specs, screenshots, related issues.

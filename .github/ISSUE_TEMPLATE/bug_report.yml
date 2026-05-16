@@ -1,0 +1,60 @@
+name: Bug report
+description: Report a bug or unexpected behaviour
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug. Please provide as much detail as you can —
+        a minimal reproducer dramatically speeds up triage.
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: Output of `openapi-gen-go-mcp -h` (the binary version, or commit SHA if built from source)
+      placeholder: v0.1.0
+    validations:
+      required: true
+  - type: input
+    id: go-version
+    attributes:
+      label: Go version
+      placeholder: go1.23.x
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: Operating system
+      placeholder: macOS 14.4 / Ubuntu 22.04 / ...
+    validations:
+      required: true
+  - type: textarea
+    id: command
+    attributes:
+      label: Command
+      description: The exact invocation that triggered the bug.
+      render: bash
+    validations:
+      required: true
+  - type: textarea
+    id: spec
+    attributes:
+      label: Minimal spec
+      description: The smallest OpenAPI / Swagger excerpt that reproduces the issue. Strip anything not needed.
+      render: yaml
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behaviour
+      description: Include error output / generated source / stack traces verbatim.
+    validations:
+      required: true

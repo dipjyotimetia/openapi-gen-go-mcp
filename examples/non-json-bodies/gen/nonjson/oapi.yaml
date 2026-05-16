@@ -1,0 +1,5 @@
+package: nonjson
+generate:
+  models: true
+  client: true
+output: nonjson.gen.go

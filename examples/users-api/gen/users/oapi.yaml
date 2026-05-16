@@ -1,0 +1,5 @@
+package: users
+generate:
+  models: true
+  client: true
+output: users.gen.go

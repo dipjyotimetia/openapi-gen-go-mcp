@@ -1,0 +1,142 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Library API",
+    "description": "A small Swagger 2.0 fixture exercising body parameters, header parameters, definitions, and references — used by the e2e tests to prove the v2 -> v3 conversion path produces a working MCP server.",
+    "version": "1.0.0"
+  },
+  "host": "api.library.example.com",
+  "basePath": "/v1",
+  "schemes": ["https"],
+  "consumes": ["application/json"],
+  "produces": ["application/json"],
+  "paths": {
+    "/books": {
+      "get": {
+        "operationId": "listBooks",
+        "summary": "List books",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ok",
+            "schema": {
+              "type": "array",
+              "items": { "$ref": "#/definitions/Book" }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "createBook",
+        "summary": "Add a book",
+        "parameters": [
+          {
+            "name": "X-API-Key",
+            "in": "header",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": { "$ref": "#/definitions/BookInput" }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "created",
+            "schema": { "$ref": "#/definitions/Book" }
+          }
+        }
+      }
+    },
+    "/books/{bookId}": {
+      "parameters": [
+        {
+          "name": "bookId",
+          "in": "path",
+          "required": true,
+          "type": "integer",
+          "format": "int64"
+        }
+      ],
+      "get": {
+        "operationId": "getBook",
+        "summary": "Fetch a book by id",
+        "responses": {
+          "200": {
+            "description": "ok",
+            "schema": { "$ref": "#/definitions/Book" }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteBook",
+        "summary": "Delete a book",
+        "responses": { "204": { "description": "no content" } }
+      }
+    },
+    "/authors/{authorId}": {
+      "parameters": [
+        {
+          "name": "authorId",
+          "in": "path",
+          "required": true,
+          "type": "integer",
+          "format": "int64"
+        }
+      ],
+      "get": {
+        "operationId": "getAuthor",
+        "summary": "Fetch an author by id",
+        "responses": {
+          "200": {
+            "description": "ok",
+            "schema": { "$ref": "#/definitions/Author" }
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "Book": {
+      "type": "object",
+      "required": ["id", "title"],
+      "properties": {
+        "id":     { "type": "integer", "format": "int64" },
+        "title":  { "type": "string" },
+        "author": { "$ref": "#/definitions/Author" }
+      }
+    },
+    "BookInput": {
+      "type": "object",
+      "required": ["title", "authorId"],
+      "properties": {
+        "title":    { "type": "string" },
+        "authorId": { "type": "integer", "format": "int64" }
+      }
+    },
+    "Author": {
+      "type": "object",
+      "required": ["id", "name"],
+      "properties": {
+        "id":   { "type": "integer", "format": "int64" },
+        "name": { "type": "string" }
+      }
+    }
+  }
+}

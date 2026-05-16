@@ -1,0 +1,13 @@
+.git
+.github
+.idea
+.vscode
+bin/
+coverage.out
+dist/
+examples/*/gen/
+**/*.test
+**/testdata/
+docs/
+*.md
+!README.md

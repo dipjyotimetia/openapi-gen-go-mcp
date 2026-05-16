@@ -1,0 +1,106 @@
+openapi: 3.0.3
+info:
+  title: Non-JSON Bodies
+  version: "0.1"
+  description: |
+    Smoke fixture exercising the non-JSON request body kinds the generator
+    supports beyond application/json. Each path declares a single operation
+    that consumes exactly one content type so the unit tests can pin the
+    expected generator output per kind.
+paths:
+  /forms/login:
+    post:
+      operationId: submitLogin
+      summary: Submit a form-urlencoded login.
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [username, password]
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+                remember_me:
+                  type: boolean
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  session_token:
+                    type: string
+  /files/upload:
+    post:
+      operationId: uploadFile
+      summary: Upload a file with metadata via multipart form-data.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [attachment]
+              properties:
+                caption:
+                  type: string
+                attachment:
+                  type: string
+                  format: binary
+                  description: The binary blob to upload.
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+  /blobs:
+    post:
+      operationId: uploadBlob
+      summary: Upload a raw binary blob.
+      requestBody:
+        required: true
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+      responses:
+        "200":
+          description: OK
+  /notes:
+    post:
+      operationId: postNote
+      summary: Post a plain-text note.
+      requestBody:
+        required: true
+        content:
+          text/plain:
+            schema:
+              type: string
+      responses:
+        "200":
+          description: OK
+  /xml-import:
+    post:
+      operationId: importXML
+      summary: Import an XML document.
+      requestBody:
+        required: true
+        content:
+          application/xml:
+            schema:
+              type: string
+      responses:
+        "200":
+          description: OK

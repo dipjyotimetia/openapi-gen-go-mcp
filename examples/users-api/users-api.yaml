@@ -1,0 +1,164 @@
+openapi: 3.0.3
+info:
+  title: Users API
+  description: Exercise multi-path-params, headers, PUT/PATCH/DELETE for e2e testing.
+  version: 1.0.0
+servers:
+  - url: https://api.example.com
+
+paths:
+  /health:
+    get:
+      summary: Health check (no params)
+      operationId: getHealth
+      responses:
+        "200":
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string }
+
+  /users:
+    get:
+      summary: List users
+      operationId: listUsers
+      parameters:
+        - in: query
+          name: limit
+          schema: { type: integer, format: int32, default: 20 }
+        - in: query
+          name: cursor
+          schema: { type: string }
+        - in: header
+          name: X-Tenant-Id
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/User" }
+
+  /users/{userId}:
+    parameters:
+      - in: path
+        name: userId
+        required: true
+        schema: { type: string, format: uuid }
+    get:
+      summary: Get user
+      operationId: getUser
+      responses:
+        "200":
+          description: ok
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/User" }
+    put:
+      summary: Replace user
+      operationId: replaceUser
+      parameters:
+        - in: header
+          name: If-Match
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UserInput" }
+      responses:
+        "200":
+          description: ok
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/User" }
+    patch:
+      summary: Partial update
+      operationId: patchUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UserPatch" }
+      responses:
+        "200":
+          description: ok
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/User" }
+    delete:
+      summary: Delete user
+      operationId: deleteUser
+      responses:
+        "204":
+          description: no content
+
+  /users/{userId}/posts/{postId}:
+    parameters:
+      - in: path
+        name: userId
+        required: true
+        schema: { type: string, format: uuid }
+      - in: path
+        name: postId
+        required: true
+        schema: { type: integer, format: int64 }
+    get:
+      summary: Get post for user
+      operationId: getUserPost
+      responses:
+        "200":
+          description: ok
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Post" }
+
+components:
+  schemas:
+    User:
+      type: object
+      required: [id, email]
+      properties:
+        id:    { type: string, format: uuid }
+        email: { type: string, format: email }
+        name:  { type: string }
+        role:
+          type: string
+          enum: [admin, member, guest]
+        createdAt:
+          type: string
+          format: date-time
+
+    UserInput:
+      type: object
+      required: [email, name]
+      properties:
+        email: { type: string, format: email }
+        name:  { type: string }
+        role:
+          type: string
+          enum: [admin, member, guest]
+
+    UserPatch:
+      type: object
+      properties:
+        email: { type: string, format: email }
+        name:  { type: string }
+        role:
+          type: string
+          enum: [admin, member, guest]
+
+    Post:
+      type: object
+      required: [id, title]
+      properties:
+        id:     { type: integer, format: int64 }
+        title:  { type: string }
+        body:   { type: string }
+        author: { $ref: "#/components/schemas/User" }

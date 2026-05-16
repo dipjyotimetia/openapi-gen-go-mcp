@@ -1,0 +1,134 @@
+components:
+    schemas:
+        Author:
+            properties:
+                id:
+                    format: int64
+                    type: integer
+                name:
+                    type: string
+            required:
+                - id
+                - name
+            type: object
+        Book:
+            properties:
+                author:
+                    $ref: '#/components/schemas/Author'
+                id:
+                    format: int64
+                    type: integer
+                title:
+                    type: string
+            required:
+                - id
+                - title
+            type: object
+        BookInput:
+            properties:
+                authorId:
+                    format: int64
+                    type: integer
+                title:
+                    type: string
+            required:
+                - title
+                - authorId
+            type: object
+info:
+    description: A small Swagger 2.0 fixture exercising body parameters, header parameters, definitions, and references — used by the e2e tests to prove the v2 -> v3 conversion path produces a working MCP server.
+    title: Library API
+    version: 1.0.0
+openapi: 3.0.3
+paths:
+    /authors/{authorId}:
+        get:
+            operationId: getAuthor
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Author'
+                    description: ok
+            summary: Fetch an author by id
+        parameters:
+            - in: path
+              name: authorId
+              required: true
+              schema:
+                format: int64
+                type: integer
+    /books:
+        get:
+            operationId: listBooks
+            parameters:
+                - in: query
+                  name: limit
+                  schema:
+                    format: int32
+                    type: integer
+                - in: header
+                  name: X-API-Key
+                  required: true
+                  schema:
+                    type: string
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                items:
+                                    $ref: '#/components/schemas/Book'
+                                type: array
+                    description: ok
+            summary: List books
+        post:
+            operationId: createBook
+            parameters:
+                - in: header
+                  name: X-API-Key
+                  required: true
+                  schema:
+                    type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/BookInput'
+                required: true
+                x-originalParamName: body
+            responses:
+                "201":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Book'
+                    description: created
+            summary: Add a book
+    /books/{bookId}:
+        delete:
+            operationId: deleteBook
+            responses:
+                "204":
+                    description: no content
+            summary: Delete a book
+        get:
+            operationId: getBook
+            responses:
+                "200":
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/Book'
+                    description: ok
+            summary: Fetch a book by id
+        parameters:
+            - in: path
+              name: bookId
+              required: true
+              schema:
+                format: int64
+                type: integer
+servers:
+    - url: https://api.library.example.com/v1

@@ -1,0 +1,82 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test (Go ${{ matrix.go }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go: ["1.25.x", "1.26.x"]
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: ${{ matrix.go }}
+          check-latest: true
+
+      - name: Cache Go modules
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ matrix.go }}-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-${{ matrix.go }}-
+
+      - name: Download deps
+        run: go mod download
+
+      - name: Vet
+        run: go vet ./...
+
+      - name: Test
+        run: go test ./... -race -count=1 -coverprofile=coverage.out
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: stable
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v9
+        with:
+          version: latest
+          args: --timeout=5m
+
+  build:
+    name: Build CLI
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: stable
+
+      - name: Build
+        run: go build -o /tmp/openapi-gen-go-mcp ./cmd/openapi-gen-go-mcp
+
+      - name: Sanity check (list operations)
+        run: /tmp/openapi-gen-go-mcp -spec testdata/petstore-v3.yaml -list
+
+      - name: Sanity check (Swagger 2.0 conversion)
+        run: /tmp/openapi-gen-go-mcp -spec testdata/petstore-v2.json -list

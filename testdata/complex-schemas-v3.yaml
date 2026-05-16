@@ -1,0 +1,152 @@
+openapi: 3.0.3
+info:
+  title: Complex Schemas API
+  description: |
+    Exercises schema features the converter must handle correctly:
+    recursive schemas via $defs, oneOf polymorphism, allOf composition,
+    enums, formats (uuid/date-time), nullable properties.
+  version: 1.0.0
+servers:
+  - url: https://api.example.com
+
+paths:
+  /threads:
+    post:
+      summary: Create a thread (recursive Comment tree)
+      operationId: createThread
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/Comment" }
+      responses:
+        "201":
+          description: created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Comment" }
+
+  /events:
+    post:
+      summary: Submit an event (oneOf polymorphism)
+      operationId: submitEvent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/Event" }
+      responses:
+        "202":
+          description: accepted
+
+  /profiles:
+    post:
+      summary: Create a profile (allOf composition)
+      operationId: createProfile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ExtendedProfile" }
+      responses:
+        "201":
+          description: created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ExtendedProfile" }
+
+  /items/{itemId}:
+    get:
+      summary: Get an item with enum-typed query filter
+      operationId: getItem
+      parameters:
+        - in: path
+          name: itemId
+          required: true
+          schema: { type: string, format: uuid }
+        - in: query
+          name: status
+          required: false
+          schema:
+            type: string
+            enum: [active, archived, deleted]
+            default: active
+        - in: query
+          name: since
+          required: false
+          schema: { type: string, format: date-time }
+      responses:
+        "200":
+          description: ok
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Item" }
+
+components:
+  schemas:
+    Comment:
+      type: object
+      required: [id, body]
+      properties:
+        id:        { type: string, format: uuid }
+        body:      { type: string }
+        createdAt: { type: string, format: date-time }
+        children:
+          type: array
+          items: { $ref: "#/components/schemas/Comment" }
+
+    Event:
+      oneOf:
+        - $ref: "#/components/schemas/LoginEvent"
+        - $ref: "#/components/schemas/LogoutEvent"
+      discriminator:
+        propertyName: kind
+        mapping:
+          login:  "#/components/schemas/LoginEvent"
+          logout: "#/components/schemas/LogoutEvent"
+
+    LoginEvent:
+      type: object
+      required: [kind, userId]
+      properties:
+        kind:   { type: string, enum: [login] }
+        userId: { type: string, format: uuid }
+        ip:     { type: string }
+
+    LogoutEvent:
+      type: object
+      required: [kind, userId]
+      properties:
+        kind:   { type: string, enum: [logout] }
+        userId: { type: string, format: uuid }
+
+    BaseProfile:
+      type: object
+      required: [id, name]
+      properties:
+        id:   { type: string, format: uuid }
+        name: { type: string }
+
+    ExtendedProfile:
+      allOf:
+        - $ref: "#/components/schemas/BaseProfile"
+        - type: object
+          properties:
+            bio:   { type: string }
+            email: { type: string, format: email }
+
+    Item:
+      type: object
+      required: [id, status]
+      properties:
+        id:     { type: string, format: uuid }
+        status:
+          type: string
+          enum: [active, archived, deleted]
+        tags:
+          type: array
+          items: { type: string }
+        deletedAt:
+          type: string
+          format: date-time
+          nullable: true

@@ -1,0 +1,41 @@
+version: "2"
+
+run:
+  timeout: 5m
+
+linters:
+  default: none
+  enable:
+    - errcheck
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+    - misspell
+    - revive
+    - gocritic
+    - gosec
+  settings:
+    revive:
+      rules:
+        - name: exported
+          disabled: true # Many internal helpers are intentionally undocumented.
+    gocritic:
+      disabled-checks:
+        - ifElseChain
+    gosec:
+      excludes:
+        - G306 # 0o644 is intentional for generator output
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
+
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  settings:
+    goimports:
+      local-prefixes:
+        - github.com/dipjyotimetia/openapi-gen-go-mcp

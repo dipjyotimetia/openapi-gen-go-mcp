@@ -1,0 +1,43 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Form Login",
+    "version": "1.0.0",
+    "description": "Minimal Swagger 2.0 fixture exercising the formData → application/x-www-form-urlencoded conversion path."
+  },
+  "consumes": ["application/x-www-form-urlencoded"],
+  "produces": ["application/json"],
+  "paths": {
+    "/login": {
+      "post": {
+        "operationId": "swaggerLogin",
+        "summary": "Submit a Swagger 2.0 formData login.",
+        "parameters": [
+          {
+            "name": "username",
+            "in": "formData",
+            "type": "string",
+            "required": true
+          },
+          {
+            "name": "password",
+            "in": "formData",
+            "type": "string",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "session_token": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
