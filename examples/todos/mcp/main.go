@@ -65,12 +65,14 @@ func probeUpstream(baseURL string) {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, baseURL+"/healthz", nil)
+	// baseURL is operator-configured via TODOS_BASE_URL; this is a self-test
+	// probe, not user-driven SSRF surface.
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, baseURL+"/healthz", nil) // #nosec G107,G704
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "todos-mcp: warning: bad upstream URL %q: %v\n", baseURL, err)
 		return
 	}
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := http.DefaultClient.Do(req) // #nosec G107,G704
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "todos-mcp: warning: upstream %s unreachable: %v\n", baseURL, err)
 		return

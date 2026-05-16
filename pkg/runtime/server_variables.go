@@ -15,17 +15,22 @@ import (
 
 // SubstituteServerVariables expands `{name}` placeholders in an OpenAPI
 // server URL template using the values supplied via runtime.WithServerVariables.
-// Variables that aren't supplied keep their `{name}` form so callers can spot
-// missing substitutions easily; an empty cfg or empty Variables map is a
-// no-op.
+//
+// Error semantics are intentionally asymmetric:
+//   - Unterminated `{` returns an error so a malformed template surfaces
+//     loudly (it indicates a buggy spec, not a missing config).
+//   - Missing variable names keep their `{name}` form in the output, no
+//     error returned. This lets callers spot unsubstituted holes in their
+//     output URL (e.g. via a quick `strings.Contains(url, "{")` check) and
+//     fall back to a default without fighting an error return on the
+//     common case of partial substitution.
+//
+// An empty template or empty vars map is a no-op.
 //
 // Caller pattern (in their main, before constructing the upstream client):
 //
-//	base := runtime.SubstituteServerVariables(spec.Servers[0].URL, cfg.ServerVariables)
+//	base, _ := runtime.SubstituteServerVariables(spec.Servers[0].URL, cfg.ServerVariables)
 //	client, _ := upstream.NewClientWithResponses(base, ...)
-//
-// Returns an error only when the template contains an unterminated `{` —
-// callers can choose to fall back to the spec default.
 func SubstituteServerVariables(template string, vars map[string]string) (string, error) {
 	if template == "" || len(vars) == 0 {
 		return template, nil

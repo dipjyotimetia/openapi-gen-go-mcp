@@ -131,13 +131,42 @@ func validateClientAlias(alias string) error {
 	return nil
 }
 
-// reservedClientAliases lists the package names the template imports
-// unconditionally — using one of these as the user's ClientImport base
-// would shadow the import and break compilation.
+// reservedClientAliases lists names that would shadow imports the template
+// always emits (`context`, `json`, `runtime`) or predeclared identifiers
+// (`string`, `int`, `error`, …) that the generated code relies on resolving
+// to their builtin meaning. `token.IsKeyword` only catches Go keywords, so
+// the predeclared set is enumerated here.
 var reservedClientAliases = map[string]struct{}{
 	"context": {},
 	"json":    {},
 	"runtime": {},
+	// predeclared identifiers (https://go.dev/ref/spec#Predeclared_identifiers)
+	"any":        {},
+	"bool":       {},
+	"byte":       {},
+	"comparable": {},
+	"complex64":  {},
+	"complex128": {},
+	"error":      {},
+	"false":      {},
+	"float32":    {},
+	"float64":    {},
+	"int":        {},
+	"int8":       {},
+	"int16":      {},
+	"int32":      {},
+	"int64":      {},
+	"iota":       {},
+	"nil":        {},
+	"rune":       {},
+	"string":     {},
+	"true":       {},
+	"uint":       {},
+	"uint8":      {},
+	"uint16":     {},
+	"uint32":     {},
+	"uint64":     {},
+	"uintptr":    {},
 }
 
 // validateNoSchemaConstCollisions ensures every tool's safeIdent-mangled

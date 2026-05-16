@@ -11,6 +11,7 @@ package runtime
 import (
 	"context"
 	"net/http"
+	"slices"
 )
 
 // CookieValues is a typed alias for the decoded cookies the generated
@@ -24,13 +25,26 @@ type CookieValues map[string]string
 // `func(context.Context, *http.Request) error` underneath) so generated
 // code can pass it as the trailing variadic reqEditors argument without
 // importing oapi-codegen's runtime package.
+//
+// Cookies are emitted in sorted name order so VCR-style HTTP traces remain
+// deterministic across runs.
 func CookieRequestEditor(values CookieValues) func(ctx context.Context, req *http.Request) error {
 	return func(_ context.Context, req *http.Request) error {
-		for name, v := range values {
+		names := make([]string, 0, len(values))
+		for name := range values {
+			names = append(names, name)
+		}
+		slices.Sort(names)
+		for _, name := range names {
+			v := values[name]
 			if v == "" {
 				continue
 			}
-			req.AddCookie(&http.Cookie{Name: name, Value: v})
+			// gosec G124 wants Secure/HttpOnly/SameSite attributes, which are
+			// server-side directives telling browsers how to store a cookie.
+			// This is the client side: we're attaching a Cookie request
+			// header, where only Name+Value are wire-relevant per RFC 6265 §4.2.
+			req.AddCookie(&http.Cookie{Name: name, Value: v}) // #nosec G124
 		}
 		return nil
 	}

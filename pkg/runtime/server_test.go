@@ -184,6 +184,21 @@ func TestNewToolResultFromHTTP_XHeaderCap(t *testing.T) {
 	}
 }
 
+func TestNewToolResultFromHTTP_TruncatesOversizedHeaderValues(t *testing.T) {
+	header := http.Header{}
+	huge := strings.Repeat("a", maxHeaderValueLen+1024)
+	header.Set("Cache-Control", huge)
+	header.Set("X-Trace", huge)
+
+	res := NewToolResultFromHTTP(200, header, nil, "")
+	if got := len(res.Headers["Cache-Control"]); got != maxHeaderValueLen {
+		t.Errorf("Cache-Control truncated to %d, want %d", got, maxHeaderValueLen)
+	}
+	if got := len(res.Headers["X-Trace"]); got != maxHeaderValueLen {
+		t.Errorf("X-Trace truncated to %d, want %d", got, maxHeaderValueLen)
+	}
+}
+
 func TestNewToolResultFromHTTP_DropsArbitraryHeaders(t *testing.T) {
 	header := http.Header{}
 	header.Set("Server", "nginx") // not on allowlist, not X-*

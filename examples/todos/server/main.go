@@ -23,6 +23,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 )
@@ -80,8 +81,16 @@ func logRequests(next http.Handler) http.Handler {
 		start := time.Now()
 		rec := &statusRecorder{ResponseWriter: w, status: http.StatusOK}
 		next.ServeHTTP(rec, r)
-		log.Printf("%-6s %-20s %d %s", r.Method, r.URL.RequestURI(), rec.status, time.Since(start).Round(time.Microsecond))
+		// Strip CRLF and %q-escape the URI so a malicious client request
+		// can't inject log lines. gosec's taint analysis can't see through
+		// the sanitiser, so annotate to acknowledge the suppression.
+		uri := sanitizeLogValue(r.URL.RequestURI())
+		log.Printf("%-6s %-20q %d %s", r.Method, uri, rec.status, time.Since(start).Round(time.Microsecond)) // #nosec G706
 	})
+}
+
+func sanitizeLogValue(s string) string {
+	return strings.NewReplacer("\n", "", "\r", "").Replace(s)
 }
 
 type statusRecorder struct {
