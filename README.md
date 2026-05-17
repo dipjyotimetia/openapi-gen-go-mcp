@@ -1,13 +1,13 @@
-# openapi-gen-go-mcp
+# openapi-go-mcp
 
-[![CI](https://github.com/dipjyotimetia/openapi-gen-go-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/dipjyotimetia/openapi-gen-go-mcp/actions/workflows/ci.yml)
-[![Go Reference](https://pkg.go.dev/badge/github.com/dipjyotimetia/openapi-gen-go-mcp.svg)](https://pkg.go.dev/github.com/dipjyotimetia/openapi-gen-go-mcp)
-[![Go Report Card](https://goreportcard.com/badge/github.com/dipjyotimetia/openapi-gen-go-mcp)](https://goreportcard.com/report/github.com/dipjyotimetia/openapi-gen-go-mcp)
+[![CI](https://github.com/dipjyotimetia/openapi-go-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/dipjyotimetia/openapi-go-mcp/actions/workflows/ci.yml)
+[![Go Reference](https://pkg.go.dev/badge/github.com/dipjyotimetia/openapi-go-mcp.svg)](https://pkg.go.dev/github.com/dipjyotimetia/openapi-go-mcp)
+[![Go Report Card](https://goreportcard.com/badge/github.com/dipjyotimetia/openapi-go-mcp)](https://goreportcard.com/report/github.com/dipjyotimetia/openapi-go-mcp)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 Generate a [Model Context Protocol (MCP)](https://modelcontextprotocol.io) server in Go from any OpenAPI 3.x or Swagger 2.0 specification. Each operation in the spec becomes an MCP tool; tool calls are forwarded to an [`oapi-codegen`](https://github.com/oapi-codegen/oapi-codegen) HTTP client.
 
-`openapi-gen-go-mcp` is the OpenAPI counterpart to [`redpanda-data/protoc-gen-go-mcp`](https://github.com/redpanda-data/protoc-gen-go-mcp).
+`openapi-go-mcp` is the OpenAPI counterpart to [`redpanda-data/protoc-gen-go-mcp`](https://github.com/redpanda-data/protoc-gen-go-mcp).
 
 ## Features
 
@@ -27,16 +27,16 @@ Pick whichever fits your environment — every channel ships the same binary.
 **Homebrew** (macOS, Linux)
 
 ```bash
-brew install dipjyotimetia/tap/openapi-gen-go-mcp
+brew install dipjyotimetia/tap/openapi-go-mcp
 ```
 
-**Pre-built binaries** — download the archive matching your OS / arch from the [latest release](https://github.com/dipjyotimetia/openapi-gen-go-mcp/releases/latest), unpack it, and put `openapi-gen-go-mcp` on your `PATH`.
+**Pre-built binaries** — download the archive matching your OS / arch from the [latest release](https://github.com/dipjyotimetia/openapi-go-mcp/releases/latest), unpack it, and put `openapi-go-mcp` on your `PATH`.
 
 **Container image** (linux/amd64 + linux/arm64)
 
 ```bash
-docker pull ghcr.io/dipjyotimetia/openapi-gen-go-mcp:latest
-docker run --rm -v "$PWD":/workspace ghcr.io/dipjyotimetia/openapi-gen-go-mcp:latest \
+docker pull ghcr.io/dipjyotimetia/openapi-go-mcp:latest
+docker run --rm -v "$PWD":/workspace ghcr.io/dipjyotimetia/openapi-go-mcp:latest \
     -spec /workspace/petstore.yaml -out /workspace/mcp -package petmcp \
     -client-import github.com/example/petstore
 ```
@@ -44,12 +44,12 @@ docker run --rm -v "$PWD":/workspace ghcr.io/dipjyotimetia/openapi-gen-go-mcp:la
 **From source** (Go 1.26+)
 
 ```bash
-go install github.com/dipjyotimetia/openapi-gen-go-mcp/cmd/openapi-gen-go-mcp@latest
+go install github.com/dipjyotimetia/openapi-go-mcp/cmd/openapi-go-mcp@latest
 # or pin to a specific release
-go install github.com/dipjyotimetia/openapi-gen-go-mcp/cmd/openapi-gen-go-mcp@v0.1.0
+go install github.com/dipjyotimetia/openapi-go-mcp/cmd/openapi-go-mcp@v0.1.0
 ```
 
-Verify with `openapi-gen-go-mcp -version`. Generated code targets Go 1.23+.
+Verify with `openapi-go-mcp -version`. Generated code targets Go 1.23+.
 
 ## Quick start
 
@@ -59,7 +59,7 @@ Two emission modes. Pick **proxy** for a turnkey server you can `go build && ./s
 
 ```bash
 # One command. Produces a complete Go module: main.go + go.mod + <pkg>/<pkg>.mcp.go + README.md.
-openapi-gen-go-mcp \
+openapi-go-mcp \
     -mode=proxy \
     -spec petstore.yaml \
     -out gen/petstore-mcp \
@@ -83,7 +83,7 @@ The spec's `servers[0].url` is the default upstream base URL; override with `API
 oapi-codegen -generate types,client -package pet -o gen/pet/pet.gen.go petstore.yaml
 
 # 2. Generate the MCP companion.
-openapi-gen-go-mcp \
+openapi-go-mcp \
     -spec petstore.yaml \
     -out gen/petmcp \
     -package petmcp \
@@ -100,7 +100,7 @@ import (
 
     "github.com/me/myrepo/gen/pet"
     "github.com/me/myrepo/gen/petmcp"
-    "github.com/dipjyotimetia/openapi-gen-go-mcp/pkg/runtime/gosdk"
+    "github.com/dipjyotimetia/openapi-go-mcp/pkg/runtime/gosdk"
 )
 
 func main() {
@@ -116,7 +116,7 @@ You write `main.go`, you own the HTTP transport (custom retries, tracing, mTLS, 
 ## CLI
 
 ```
-openapi-gen-go-mcp [flags]
+openapi-go-mcp [flags]
 
   -spec PATH              OpenAPI 3.x / Swagger 2.0 source. Accepts:
                             • a single file path
@@ -184,17 +184,17 @@ rendered into its own subdirectory under `-out`:
 
 ```bash
 # Recursive directory: every spec under apis/ becomes its own tool set
-openapi-gen-go-mcp \
+openapi-go-mcp \
     -spec apis/ \
     -out gen \
     -client-import github.com/acme/apis/gen \
     -force
 
 # Glob (filepath.Glob syntax — no ** in v1; use a directory for recursion)
-openapi-gen-go-mcp -spec 'apis/*.yaml' -out gen -client-import github.com/acme/apis/gen
+openapi-go-mcp -spec 'apis/*.yaml' -out gen -client-import github.com/acme/apis/gen
 
 # Multiple folders / mixed inputs, comma-separated
-openapi-gen-go-mcp -spec 'core/,extras/audit.yaml' -out gen -client-import example.com/g
+openapi-go-mcp -spec 'core/,extras/audit.yaml' -out gen -client-import example.com/g
 ```
 
 For each matched spec the generator derives a slug from the filename stem
@@ -217,9 +217,9 @@ full walkthrough.
 `oapi-codegen` does not accept Swagger 2.0 input. Convert first:
 
 ```bash
-openapi-gen-go-mcp -spec petstore-v2.json -emit-v3 petstore-v3.yaml
+openapi-go-mcp -spec petstore-v2.json -emit-v3 petstore-v3.yaml
 oapi-codegen -generate types,client -package pet -o gen/pet/pet.gen.go petstore-v3.yaml
-openapi-gen-go-mcp -spec petstore-v3.yaml -out gen/petmcp -package petmcp -client-import ...
+openapi-go-mcp -spec petstore-v3.yaml -out gen/petmcp -package petmcp -client-import ...
 ```
 
 `-emit-v3` also prunes non-JSON content types from responses, which works around a known issue in oapi-codegen v2.7.0 with responses exposed under multiple content types.
@@ -273,7 +273,7 @@ In `-openai-compat` mode the schema is inlined (no `$ref`), composition keywords
 ## Runtime options
 
 ```go
-import "github.com/dipjyotimetia/openapi-gen-go-mcp/pkg/runtime"
+import "github.com/dipjyotimetia/openapi-go-mcp/pkg/runtime"
 
 // Prefix every tool name — useful when registering the same API twice.
 petmcp.RegisterSwaggerPetstoreClient(s, client, runtime.WithNamePrefix("staging"))

@@ -70,7 +70,7 @@ func TestWriteScaffold_GoSDK_MainCompilesAsAST(t *testing.T) {
 	src := string(body)
 	for _, want := range []string{
 		`"example.com/petmcp/petmcp"`,
-		`"github.com/dipjyotimetia/openapi-gen-go-mcp/pkg/runtime/gosdk"`,
+		`"github.com/dipjyotimetia/openapi-go-mcp/pkg/runtime/gosdk"`,
 		`"github.com/modelcontextprotocol/go-sdk/mcp"`,
 		"gosdk.NewServer",
 		`mcp.StdioTransport{}`,
@@ -130,7 +130,7 @@ func TestWriteScaffold_GoMod_ShapeAndOrder(t *testing.T) {
 		"module example.com/petmcp",
 		"go 1.23",
 		"require (",
-		"github.com/dipjyotimetia/openapi-gen-go-mcp v1.2.3",
+		"github.com/dipjyotimetia/openapi-go-mcp v1.2.3",
 		"github.com/modelcontextprotocol/go-sdk",
 	} {
 		if !strings.Contains(src, want) {
@@ -161,7 +161,7 @@ func TestWriteScaffold_GoMod_ReplaceDirective(t *testing.T) {
 		t.Fatalf("WriteScaffold: %v", err)
 	}
 	body, _ := os.ReadFile(filepath.Join(out, "go.mod"))
-	if !strings.Contains(string(body), "replace github.com/dipjyotimetia/openapi-gen-go-mcp => ../..") {
+	if !strings.Contains(string(body), "replace github.com/dipjyotimetia/openapi-go-mcp => ../..") {
 		t.Errorf("expected replace directive in go.mod:\n%s", string(body))
 	}
 }
@@ -171,9 +171,11 @@ func TestWriteScaffold_README_AuthTable(t *testing.T) {
 	schemes := []SecurityScheme{
 		{Name: "bearerAuth", Kind: SecurityHTTPBearer, EnvVar: "BEARER_TOKEN_BEARERAUTH"},
 		{Name: "apiKeyAuth", Kind: SecurityAPIKey, In: "header", ParamName: "X-API-Key", EnvVar: "API_KEY_APIKEYAUTH"},
-		{Name: "basicAuth", Kind: SecurityHTTPBasic,
+		{
+			Name: "basicAuth", Kind: SecurityHTTPBasic,
 			UsernameEnvVar: "BASIC_AUTH_USERNAME_BASICAUTH",
-			PasswordEnvVar: "BASIC_AUTH_PASSWORD_BASICAUTH"},
+			PasswordEnvVar: "BASIC_AUTH_PASSWORD_BASICAUTH",
+		},
 	}
 	err := WriteScaffold(Options{
 		Mode:        ModeProxy,

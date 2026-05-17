@@ -19,8 +19,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/dipjyotimetia/openapi-gen-go-mcp/pkg/generator"
-	"github.com/dipjyotimetia/openapi-gen-go-mcp/pkg/loader"
+	"github.com/dipjyotimetia/openapi-go-mcp/pkg/generator"
+	"github.com/dipjyotimetia/openapi-go-mcp/pkg/loader"
 )
 
 // SpecPlan pairs one spec input with the generator.Options that should be

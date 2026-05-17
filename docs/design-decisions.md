@@ -1,6 +1,6 @@
 # Design decisions
 
-The non-obvious choices made by `openapi-gen-go-mcp`, why they exist, and what they cost. Each entry is paired with the alternative we considered and rejected.
+The non-obvious choices made by `openapi-go-mcp`, why they exist, and what they cost. Each entry is paired with the alternative we considered and rejected.
 
 ## 1. Companion code generation, not runtime introspection
 
@@ -10,7 +10,7 @@ The non-obvious choices made by `openapi-gen-go-mcp`, why they exist, and what t
 
 **Why we chose codegen.**
 - **Compile-time safety.** The generated handlers call typed `<Op>WithResponse(ctx, ...)` methods. A spec change that drops a parameter or renames a field breaks the build, not production.
-- **Symmetry with the existing toolchain.** Users running `oapi-codegen` already accept a codegen step. Adding `openapi-gen-go-mcp` is one more `go generate` line, not a new architectural primitive.
+- **Symmetry with the existing toolchain.** Users running `oapi-codegen` already accept a codegen step. Adding `openapi-go-mcp` is one more `go generate` line, not a new architectural primitive.
 - **Reviewable diffs.** The output is gofmt-clean Go source, version-controlled. PR reviewers see exactly what the MCP server will expose — no runtime surprises.
 - **No reflection / no schema-walking at request time.** Cold-start cost is zero; tool registration is straight-line code.
 
@@ -150,7 +150,7 @@ The non-obvious choices made by `openapi-gen-go-mcp`, why they exist, and what t
 
 **Why filename-derived.**
 - **Convention beats configuration.** A monorepo with one spec per service already encodes "what this thing is" in the filename. Re-encoding it in a config is duplicate state that drifts.
-- **Trivially scriptable.** `openapi-gen-go-mcp -spec apis/ -out gen -client-import …` is one command. Adding a config file means another file the user has to maintain and another path the build has to source.
+- **Trivially scriptable.** `openapi-go-mcp -spec apis/ -out gen -client-import …` is one command. Adding a config file means another file the user has to maintain and another path the build has to source.
 - **Collisions surface loudly.** Two specs that derive the same slug (`v1/api.yaml`, `v2/api.yaml`) are caught up front by `batch.DetectCollisions` and reported with all source paths. The user fixes the filename, not a config table.
 
 **Cost.** Specs with non-alphanumeric filenames need to be renamed to a `[a-z0-9]` form. `Slug` errors fast when the stem sanitises to empty — no silent degradation.

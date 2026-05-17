@@ -20,8 +20,8 @@ import (
 
 	"github.com/getkin/kin-openapi/openapi3"
 
-	"github.com/dipjyotimetia/openapi-gen-go-mcp/pkg/loader"
-	"github.com/dipjyotimetia/openapi-gen-go-mcp/pkg/runtime"
+	"github.com/dipjyotimetia/openapi-go-mcp/pkg/loader"
+	"github.com/dipjyotimetia/openapi-go-mcp/pkg/runtime"
 )
 
 // OpenAPI parameter "in" values. The spec defines these as enum strings; we

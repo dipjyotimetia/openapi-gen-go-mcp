@@ -34,7 +34,7 @@ func addReplaceDirective(t *testing.T, goModPath, repoRootPath string) {
 	if err != nil {
 		t.Fatalf("read go.mod: %v", err)
 	}
-	body = append(body, []byte("\nreplace github.com/dipjyotimetia/openapi-gen-go-mcp => "+repoRootPath+"\n")...)
+	body = append(body, []byte("\nreplace github.com/dipjyotimetia/openapi-go-mcp => "+repoRootPath+"\n")...)
 	if err := os.WriteFile(goModPath, body, 0o644); err != nil {
 		t.Fatalf("write go.mod: %v", err)
 	}

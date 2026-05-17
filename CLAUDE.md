@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this project is
 
-`openapi-gen-go-mcp` is a CLI code generator that consumes an OpenAPI 3.x or Swagger 2.0 spec and emits a Go file (`*.mcp.go`) which registers every operation in the spec as an MCP (Model Context Protocol) tool. Generated code delegates HTTP work to a user-supplied `oapi-codegen` typed client. It is the OpenAPI counterpart to `protoc-gen-go-mcp`.
+`openapi-go-mcp` is a CLI code generator that consumes an OpenAPI 3.x or Swagger 2.0 spec and emits a Go file (`*.mcp.go`) which registers every operation in the spec as an MCP (Model Context Protocol) tool. Generated code delegates HTTP work to a user-supplied `oapi-codegen` typed client. It is the OpenAPI counterpart to `protoc-gen-go-mcp`.
 
 The generator does not own the HTTP client — the user runs `oapi-codegen` to produce the typed client, then runs this tool to produce the MCP companion alongside it.
 
@@ -13,7 +13,7 @@ The generator does not own the HTTP client — the user runs `oapi-codegen` to p
 Standard dev loop (see `Makefile` for full list):
 
 ```bash
-make build           # builds CLI into ./bin/openapi-gen-go-mcp
+make build           # builds CLI into ./bin/openapi-go-mcp
 make test            # go test ./...
 make test-race       # go test ./... -race -count=1
 make vet             # go vet ./...
@@ -44,7 +44,7 @@ CI runs on Go 1.26.x (matching the `go 1.26` directive in `go.mod`). Generated c
 Detailed package layout, data flow diagrams, and extension points are in `docs/architecture.md` — read it before making non-trivial changes to the generator or runtime. Deployment recipes are in `docs/usage-patterns.md`; the rationale behind non-obvious choices (companion codegen, grouped input schema, per-operation `$defs`, default-vs-OpenAI-strict schema dialect, JSON-only bodies) is in `docs/design-decisions.md` — consult it before changing those defaults. The short version:
 
 ```
-cmd/openapi-gen-go-mcp/  CLI entry point + batch orchestration loop
+cmd/openapi-go-mcp/  CLI entry point + batch orchestration loop
 pkg/loader/              Spec ingestion: OpenAPI 3.x direct, Swagger 2.0 via openapi2conv; ExpandSpecArg for glob/dir/comma input
 pkg/batch/               Per-spec option derivation (slug → PackageName/OutDir/ClientImport), collision detection
 pkg/generator/           Operation collection, JSON Schema conversion, text/template → gofmt

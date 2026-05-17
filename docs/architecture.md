@@ -1,6 +1,6 @@
 # Architecture
 
-This document describes the structure of `openapi-gen-go-mcp` — its packages, the data flow from OpenAPI spec to generated Go source, and the extension points where new MCP backends or schema dialects can be added.
+This document describes the structure of `openapi-go-mcp` — its packages, the data flow from OpenAPI spec to generated Go source, and the extension points where new MCP backends or schema dialects can be added.
 
 ## Goals
 
@@ -12,7 +12,7 @@ This document describes the structure of `openapi-gen-go-mcp` — its packages, 
 ## Package layout
 
 ```
-cmd/openapi-gen-go-mcp/   # CLI entry point + batch orchestration loop
+cmd/openapi-go-mcp/   # CLI entry point + batch orchestration loop
 pkg/loader/               # OpenAPI 3.x + Swagger 2.0 ingestion; ExpandSpecArg
 pkg/batch/                # Per-spec option derivation, slug rules, collision detection
 pkg/generator/            # Operation collection, schema conversion, Go source emission

@@ -6,7 +6,7 @@
 //
 //	http://www.apache.org/licenses/LICENSE-2.0
 
-// Command openapi-gen-go-mcp generates MCP-server Go code from an OpenAPI
+// Command openapi-go-mcp generates MCP-server Go code from an OpenAPI
 // 3.x or Swagger 2.0 specification.
 package main
 
@@ -18,9 +18,9 @@ import (
 	"path/filepath"
 	"runtime/debug"
 
-	"github.com/dipjyotimetia/openapi-gen-go-mcp/pkg/batch"
-	"github.com/dipjyotimetia/openapi-gen-go-mcp/pkg/generator"
-	"github.com/dipjyotimetia/openapi-gen-go-mcp/pkg/loader"
+	"github.com/dipjyotimetia/openapi-go-mcp/pkg/batch"
+	"github.com/dipjyotimetia/openapi-go-mcp/pkg/generator"
+	"github.com/dipjyotimetia/openapi-go-mcp/pkg/loader"
 )
 
 // Build metadata populated by GoReleaser ldflags (`-X main.version=...`).
@@ -69,12 +69,12 @@ func run() int {
 	flag.Parse()
 
 	if *showVersion {
-		fmt.Printf("openapi-gen-go-mcp %s (commit %s, built %s)\n", resolveVersion(), commit, date)
+		fmt.Printf("openapi-go-mcp %s (commit %s, built %s)\n", resolveVersion(), commit, date)
 		return exitOK
 	}
 
 	if *specPath == "" {
-		fmt.Fprintln(os.Stderr, "openapi-gen-go-mcp: the -spec flag is required")
+		fmt.Fprintln(os.Stderr, "openapi-go-mcp: the -spec flag is required")
 		return exitUsage
 	}
 
@@ -87,30 +87,30 @@ func run() int {
 	case "proxy":
 		genMode = generator.ModeProxy
 	default:
-		fmt.Fprintf(os.Stderr, "openapi-gen-go-mcp: -mode must be \"companion\" or \"proxy\"; got %q\n", *mode)
+		fmt.Fprintf(os.Stderr, "openapi-go-mcp: -mode must be \"companion\" or \"proxy\"; got %q\n", *mode)
 		return exitUsage
 	}
 	if genMode == generator.ModeProxy {
 		if *modulePath == "" {
-			fmt.Fprintln(os.Stderr, "openapi-gen-go-mcp: -module is required when -mode=proxy (the Go import path written into the generated go.mod)")
+			fmt.Fprintln(os.Stderr, "openapi-go-mcp: -module is required when -mode=proxy (the Go import path written into the generated go.mod)")
 			return exitUsage
 		}
 		if *sdk != "gosdk" && *sdk != "mark3labs" {
-			fmt.Fprintf(os.Stderr, "openapi-gen-go-mcp: -sdk must be \"gosdk\" or \"mark3labs\"; got %q\n", *sdk)
+			fmt.Fprintf(os.Stderr, "openapi-go-mcp: -sdk must be \"gosdk\" or \"mark3labs\"; got %q\n", *sdk)
 			return exitUsage
 		}
 		if *emitV3 != "" {
-			fmt.Fprintln(os.Stderr, "openapi-gen-go-mcp: -emit-v3 cannot be combined with -mode=proxy (proxy emits Go, not YAML)")
+			fmt.Fprintln(os.Stderr, "openapi-go-mcp: -emit-v3 cannot be combined with -mode=proxy (proxy emits Go, not YAML)")
 			return exitUsage
 		}
 	} else if *modulePath != "" {
-		fmt.Fprintln(os.Stderr, "openapi-gen-go-mcp: -module is only valid with -mode=proxy")
+		fmt.Fprintln(os.Stderr, "openapi-go-mcp: -module is only valid with -mode=proxy")
 		return exitUsage
 	}
 
 	refs, err := loader.ExpandSpecArg(*specPath)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "openapi-gen-go-mcp: %v\n", err)
+		fmt.Fprintf(os.Stderr, "openapi-go-mcp: %v\n", err)
 		return exitBadInput
 	}
 	isBatch := len(refs) > 1
@@ -119,11 +119,11 @@ func run() int {
 	// Done up front so we don't load any specs only to abort.
 	if isBatch {
 		if *pkgName != "" {
-			fmt.Fprintln(os.Stderr, "openapi-gen-go-mcp: -package cannot be combined with multi-spec input (each spec auto-derives its package name from its filename)")
+			fmt.Fprintln(os.Stderr, "openapi-go-mcp: -package cannot be combined with multi-spec input (each spec auto-derives its package name from its filename)")
 			return exitUsage
 		}
 		if *emitV3 != "" {
-			fmt.Fprintln(os.Stderr, "openapi-gen-go-mcp: -emit-v3 cannot be combined with multi-spec input (it writes a single file)")
+			fmt.Fprintln(os.Stderr, "openapi-go-mcp: -emit-v3 cannot be combined with multi-spec input (it writes a single file)")
 			return exitUsage
 		}
 	}
@@ -149,14 +149,14 @@ func run() int {
 	for _, ref := range refs {
 		plan, planErr := batch.PlanFor(ref, baseOpts, isBatch)
 		if planErr != nil {
-			fmt.Fprintf(os.Stderr, "openapi-gen-go-mcp: %v\n", planErr)
+			fmt.Fprintf(os.Stderr, "openapi-go-mcp: %v\n", planErr)
 			return exitBadInput
 		}
 		plans = append(plans, plan)
 	}
 	if isBatch {
 		if collErr := batch.DetectCollisions(plans); collErr != nil {
-			fmt.Fprintf(os.Stderr, "openapi-gen-go-mcp: %v\n", collErr)
+			fmt.Fprintf(os.Stderr, "openapi-go-mcp: %v\n", collErr)
 			return exitBadInput
 		}
 	}
@@ -169,7 +169,7 @@ func run() int {
 	// all. Gate the check on the actual mode the CLI is in.
 	codegenMode := !*listOnly && *emitV3 == ""
 	if codegenMode && genMode == generator.ModeCompanion && *clientImport == "" {
-		fmt.Fprintln(os.Stderr, "openapi-gen-go-mcp: the -client-import flag is required in companion mode (path to your oapi-codegen output package)")
+		fmt.Fprintln(os.Stderr, "openapi-go-mcp: the -client-import flag is required in companion mode (path to your oapi-codegen output package)")
 		return exitUsage
 	}
 
@@ -181,7 +181,7 @@ func run() int {
 		prefix := displayPath(plan.Ref.Path, cwd)
 		doc, loadErr := loader.Load(ctx, plan.Ref.Path)
 		if loadErr != nil {
-			fmt.Fprintf(os.Stderr, "openapi-gen-go-mcp [%s]: load: %v\n", prefix, loadErr)
+			fmt.Fprintf(os.Stderr, "openapi-go-mcp [%s]: load: %v\n", prefix, loadErr)
 			if !isBatch {
 				return exitBadInput
 			}
@@ -200,7 +200,7 @@ func run() int {
 		if *emitV3 != "" {
 			// Reached only in single-spec mode (batch rejects -emit-v3 above).
 			if emitErr := loader.WriteV3YAMLJSONOnly(doc, *emitV3); emitErr != nil {
-				fmt.Fprintf(os.Stderr, "openapi-gen-go-mcp: emit-v3: %v\n", emitErr)
+				fmt.Fprintf(os.Stderr, "openapi-go-mcp: emit-v3: %v\n", emitErr)
 				return exitGenerate
 			}
 			return exitOK
@@ -209,7 +209,7 @@ func run() int {
 		diags, genErr := generator.Generate(doc, plan.Opts)
 		if genErr != nil {
 			printDiagnostics(diags, prefix, isBatch)
-			fmt.Fprintf(os.Stderr, "openapi-gen-go-mcp [%s]: generate: %v\n", prefix, genErr)
+			fmt.Fprintf(os.Stderr, "openapi-go-mcp [%s]: generate: %v\n", prefix, genErr)
 			if !isBatch {
 				return exitGenerate
 			}
@@ -234,9 +234,9 @@ func printDiagnostics(diags []generator.Diagnostic, prefix string, isBatch bool)
 	if len(diags) == 0 {
 		return
 	}
-	header := "openapi-gen-go-mcp"
+	header := "openapi-go-mcp"
 	if isBatch {
-		header = fmt.Sprintf("openapi-gen-go-mcp [%s]", prefix)
+		header = fmt.Sprintf("openapi-go-mcp [%s]", prefix)
 	}
 	fmt.Fprintf(os.Stderr, "%s: %d diagnostic(s):\n", header, len(diags))
 	for _, d := range diags {

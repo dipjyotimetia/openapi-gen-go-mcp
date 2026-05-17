@@ -98,7 +98,7 @@ func (s *diagSink) info(code, path, message string) {
 func (s *diagSink) emit(sev Severity, code, path, message string) {
 	s.out = append(s.out, Diagnostic{Severity: sev, Code: code, Path: path, Message: message})
 	if s.w != nil {
-		_, _ = fmt.Fprintf(s.w, "openapi-gen-go-mcp: %s: %s [%s]: %s\n", sev, path, code, message)
+		_, _ = fmt.Fprintf(s.w, "openapi-go-mcp: %s: %s [%s]: %s\n", sev, path, code, message)
 	}
 }
 

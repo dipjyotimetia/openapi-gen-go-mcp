@@ -1,11 +1,11 @@
 # Usage patterns
 
-`openapi-gen-go-mcp` doesn't ship a server — it generates one. The generated `*.mcp.go` registers every OpenAPI operation as an MCP tool that forwards to an `oapi-codegen` typed HTTP client. Each pattern below is a different way of assembling those pieces into a deployable binary.
+`openapi-go-mcp` doesn't ship a server — it generates one. The generated `*.mcp.go` registers every OpenAPI operation as an MCP tool that forwards to an `oapi-codegen` typed HTTP client. Each pattern below is a different way of assembling those pieces into a deployable binary.
 
 > All examples assume you've already run the two-step codegen for your spec:
 > ```bash
 > oapi-codegen -generate types,client -package pet -o gen/pet/pet.gen.go petstore.yaml
-> openapi-gen-go-mcp -spec petstore.yaml -out gen/petmcp -package petmcp \
+> openapi-go-mcp -spec petstore.yaml -out gen/petmcp -package petmcp \
 >     -client-import github.com/me/myrepo/gen/pet
 > ```
 
@@ -26,7 +26,7 @@ import (
 
     "github.com/me/myrepo/gen/pet"
     "github.com/me/myrepo/gen/petmcp"
-    "github.com/dipjyotimetia/openapi-gen-go-mcp/pkg/runtime/gosdk"
+    "github.com/dipjyotimetia/openapi-go-mcp/pkg/runtime/gosdk"
 )
 
 func main() {
@@ -80,10 +80,10 @@ Change one import and one constructor line:
 
 ```go
 // Was:
-//   "github.com/dipjyotimetia/openapi-gen-go-mcp/pkg/runtime/gosdk"
+//   "github.com/dipjyotimetia/openapi-go-mcp/pkg/runtime/gosdk"
 //   raw, s := gosdk.NewServer("petstore-mcp", "1.0.0")
 
-import "github.com/dipjyotimetia/openapi-gen-go-mcp/pkg/runtime/mark3labs"
+import "github.com/dipjyotimetia/openapi-go-mcp/pkg/runtime/mark3labs"
 import mcpserver "github.com/mark3labs/mcp-go/server"
 
 raw, s := mark3labs.NewServer("petstore-mcp", "1.0.0")
@@ -151,7 +151,7 @@ This is the right pattern when the deployment itself owns the credential.
 OpenAI's tool-call validator rejects `$ref`, `oneOf`/`anyOf`/`allOf`, and open-ended objects. Generate with `-openai-compat`:
 
 ```bash
-openapi-gen-go-mcp \
+openapi-go-mcp \
     -spec petstore.yaml -out gen/petmcp -package petmcp \
     -client-import github.com/me/myrepo/gen/pet \
     -openai-compat
@@ -179,9 +179,9 @@ This avoids exposing the upstream service to the network while still letting an 
 `oapi-codegen` rejects Swagger 2.0. Convert in-process first, then run both codegens against the converted v3:
 
 ```bash
-openapi-gen-go-mcp -spec petstore-v2.json -emit-v3 petstore-v3.yaml
+openapi-go-mcp -spec petstore-v2.json -emit-v3 petstore-v3.yaml
 oapi-codegen -generate types,client -package pet -o gen/pet/pet.gen.go petstore-v3.yaml
-openapi-gen-go-mcp -spec petstore-v3.yaml -out gen/petmcp -package petmcp \
+openapi-go-mcp -spec petstore-v3.yaml -out gen/petmcp -package petmcp \
     -client-import github.com/me/myrepo/gen/pet
 ```
 
@@ -247,8 +247,8 @@ diagnostics on stderr, and unrecognised `x-mcp` values (typos like
 past review:
 
 ```bash
-openapi-gen-go-mcp -spec billing.yaml -list
-openapi-gen-go-mcp -force -spec billing.yaml \
+openapi-go-mcp -spec billing.yaml -list
+openapi-go-mcp -force -spec billing.yaml \
     -out gen/billingmcp -package billingmcp \
     -client-import github.com/acme/billing/gen/billing
 ```
@@ -266,21 +266,21 @@ single-spec pipeline once per matched file.
 
 ```bash
 # Recursive directory: every .yaml/.yml/.json under apis/ becomes a tool set
-openapi-gen-go-mcp \
+openapi-go-mcp \
     -spec apis/ \
     -out gen \
     -client-import github.com/acme/apis/gen \
     -force
 
 # Glob with stdlib filepath.Glob syntax (no ** in v1; use a directory for recursion)
-openapi-gen-go-mcp \
+openapi-go-mcp \
     -spec 'apis/*.yaml' \
     -out gen \
     -client-import github.com/acme/apis/gen
 
 # Multiple folders / mixed inputs, comma-separated. Each entry is expanded
 # independently then concatenated, sorted, and deduplicated.
-openapi-gen-go-mcp \
+openapi-go-mcp \
     -spec 'core-apis/,partner-apis/,extras/audit.yaml' \
     -out gen \
     -client-import github.com/acme/apis/gen
@@ -329,7 +329,7 @@ binary that exposes the API as MCP tools, with no Go code to write and no
 `oapi-codegen` step to wire up.
 
 ```bash
-openapi-gen-go-mcp \
+openapi-go-mcp \
     -mode=proxy \
     -spec petstore.yaml \
     -out gen/petstore-mcp \
@@ -375,7 +375,7 @@ naming the env var the user should set — never a silent upstream 401.
 ## Pattern 14 — Batch proxy for a monorepo of specs
 
 ```bash
-openapi-gen-go-mcp \
+openapi-go-mcp \
     -mode=proxy \
     -spec apis/ \
     -out gen \

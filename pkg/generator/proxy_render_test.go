@@ -17,7 +17,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/dipjyotimetia/openapi-gen-go-mcp/pkg/loader"
+	"github.com/dipjyotimetia/openapi-go-mcp/pkg/loader"
 )
 
 // TestRender_ProxyMode_PetstoreCompiles parses the proxy-mode output of the
@@ -46,7 +46,7 @@ func TestRender_ProxyMode_PetstoreCompiles(t *testing.T) {
 	// import any oapi-codegen client, must expose a register function.
 	src := string(got)
 	for _, want := range []string{
-		`"github.com/dipjyotimetia/openapi-gen-go-mcp/pkg/runtime"`,
+		`"github.com/dipjyotimetia/openapi-go-mcp/pkg/runtime"`,
 		"package petstoremcp",
 		"http.NewRequestWithContext",
 		"httpClient.Do",

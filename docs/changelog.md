@@ -42,7 +42,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **`runtime.WithHTTPClient`, `runtime.WithRequestTimeout`, `runtime.WithServerVariables`** — option groundwork user code can call from `Register*` opts to customise the upstream HTTP client, set a per-tool-call deadline, and supply substitutions for OpenAPI server-URL templates.
 - **`runtime.SubstituteServerVariables(template, vars)`** — helper to expand `{name}` placeholders in OpenAPI server URLs at runtime.
 - **`runtime.DecodeArguments`** — shared argument decoder used by both adapters so the gosdk and mark3labs paths surface identical error semantics on malformed input.
-- **`runtime.BuildHTTPMeta` + `runtime.HTTPMetaKey`** — adapters serialise the new HTTP status + headers onto the underlying SDK's `_meta` channel (go-sdk `Meta`, mark3labs `Meta.AdditionalFields`) under `openapi-gen-go-mcp/http`, so MCP clients can read both regardless of which SDK is wired up.
+- **`runtime.BuildHTTPMeta` + `runtime.HTTPMetaKey`** — adapters serialise the new HTTP status + headers onto the underlying SDK's `_meta` channel (go-sdk `Meta`, mark3labs `Meta.AdditionalFields`) under `openapi-go-mcp/http`, so MCP clients can read both regardless of which SDK is wired up.
 - **`ExtraProperty.Type`** — extra-property declarations may now request `number`, `integer`, or `boolean` shapes in addition to the previous string-only path. Unknown types fall back to string rather than emit invalid schema.
 - **Structured generator diagnostics** — `generator.CollectOperations` and `generator.Generate` now return `[]Diagnostic` alongside the error. Stable `Code` values (`dropped-callback`, `unsupported-parameter-style`, `shadowed-parameter`, `dropped-server-variables`, `dropped-security-requirement`, `content-type-header-override`, …) make findings machine-readable; the legacy `Options.Warnings` stream is preserved.
 - **`-warnings-as-errors` CLI flag** — exit code `4` when any warning-level diagnostic fires, useful for failing CI on spec regressions.
@@ -92,7 +92,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ### Fixed
 
 - `make regen-examples` is now idempotent: a second run produces no diff. Previously the oapi-codegen step landed some `*.gen.go` files at the repo root because the `output:` field was a bare filename interpreted relative to cwd.
-- **`Dockerfile` multi-platform COPY** — `dockers_v2` stages binaries under `<os>/<arch>/<binary>` in the build context, but the Dockerfile did a flat `COPY openapi-gen-go-mcp …` and the release docker build failed with `"/openapi-gen-go-mcp": not found`. The Dockerfile now declares `ARG TARGETOS` / `ARG TARGETARCH` (auto-populated by BuildKit) and copies from `${TARGETOS}/${TARGETARCH}/openapi-gen-go-mcp`. Verified locally with `docker buildx build --platform linux/amd64,linux/arm64` against a reproduced goreleaser staging layout.
+- **`Dockerfile` multi-platform COPY** — `dockers_v2` stages binaries under `<os>/<arch>/<binary>` in the build context, but the Dockerfile did a flat `COPY openapi-go-mcp …` and the release docker build failed with `"/openapi-go-mcp": not found`. The Dockerfile now declares `ARG TARGETOS` / `ARG TARGETARCH` (auto-populated by BuildKit) and copies from `${TARGETOS}/${TARGETARCH}/openapi-go-mcp`. Verified locally with `docker buildx build --platform linux/amd64,linux/arm64` against a reproduced goreleaser staging layout.
 
 ## [0.1.0] — 2026-05-16
 
@@ -100,7 +100,7 @@ Initial public release.
 
 ### Added
 
-- **CLI `openapi-gen-go-mcp`** — reads OpenAPI 3.0 / 3.1 / Swagger 2.0 specs and generates a `*.mcp.go` file per spec. Each operation becomes an MCP tool whose handler forwards to an `oapi-codegen` `ClientWithResponsesInterface`.
+- **CLI `openapi-go-mcp`** — reads OpenAPI 3.0 / 3.1 / Swagger 2.0 specs and generates a `*.mcp.go` file per spec. Each operation becomes an MCP tool whose handler forwards to an `oapi-codegen` `ClientWithResponsesInterface`.
 - **Request body kinds** — `application/json`, `application/x-www-form-urlencoded`, `multipart/form-data` (binary fields accepted as base64), `application/octet-stream`, `text/*`, and `application/xml` + raw-string fallback for any other content type. When an operation declares multiple, the generator picks deterministically (JSON → form → multipart → octet → text → xml → first). Three new runtime helpers — `BuildMultipartBody`, `BuildBase64BytesBody`, `BuildStringBody` — handle the encoding.
 - **Format-aware Go types for path parameters** — `format: uuid` / `email` / `date` produce typed wrappers (`openapi_types.UUID`, `openapi_types.Email`, `openapi_types.Date`); `format: date-time` produces `time.Time`. Required extra imports are emitted automatically.
 - **`pkg/loader`** — spec ingestion with auto-conversion of Swagger 2.0 via `kin-openapi/openapi2conv`. Exports `Load`, `WriteV3YAMLJSONOnly`, `IsJSONContentType`.
@@ -113,7 +113,7 @@ Initial public release.
 - **`-list` flag** — print operations in the spec and exit.
 - **`-version` flag** — print build metadata (GoReleaser-injected `version` / `commit` / `date`, falling back to `runtime/debug.BuildInfo`).
 - **Examples** — `petstore` (go-sdk), `petstore-mark3labs`, `swagger2-petstore`, `users-api`, `library` (v2 → v3 end-to-end), `complex` (recursive `$ref` / oneOf / allOf / enums / formats), `non-json-bodies` (every non-JSON request kind).
-- **Distribution channels** — pre-built binaries on every tagged release (darwin/linux/windows × amd64/arm64), Homebrew formula via `dipjyotimetia/homebrew-tap`, and a multi-arch container image at `ghcr.io/dipjyotimetia/openapi-gen-go-mcp`. Driven by `.goreleaser.yml`; release workflow runs on `v*` tag push.
+- **Distribution channels** — pre-built binaries on every tagged release (darwin/linux/windows × amd64/arm64), Homebrew formula via `dipjyotimetia/homebrew-tap`, and a multi-arch container image at `ghcr.io/dipjyotimetia/openapi-go-mcp`. Driven by `.goreleaser.yml`; release workflow runs on `v*` tag push.
 
 ### Tests
 
@@ -139,6 +139,6 @@ Initial public release.
 - No dynamic (no-codegen, reflection-based) registration path yet. Tracked in `TODO.md`.
 - `discriminator` is dropped during schema conversion — JSON Schema has no direct equivalent.
 
-[Unreleased]: https://github.com/dipjyotimetia/openapi-gen-go-mcp/compare/v0.1.1...HEAD
-[0.1.1]: https://github.com/dipjyotimetia/openapi-gen-go-mcp/releases/tag/v0.1.1
-[0.1.0]: https://github.com/dipjyotimetia/openapi-gen-go-mcp/releases/tag/v0.1.0
+[Unreleased]: https://github.com/dipjyotimetia/openapi-go-mcp/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/dipjyotimetia/openapi-go-mcp/releases/tag/v0.1.1
+[0.1.0]: https://github.com/dipjyotimetia/openapi-go-mcp/releases/tag/v0.1.0

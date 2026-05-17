@@ -13,8 +13,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/dipjyotimetia/openapi-gen-go-mcp/pkg/generator"
-	"github.com/dipjyotimetia/openapi-gen-go-mcp/pkg/loader"
+	"github.com/dipjyotimetia/openapi-go-mcp/pkg/generator"
+	"github.com/dipjyotimetia/openapi-go-mcp/pkg/loader"
 )
 
 func TestSlug_FilenameStem(t *testing.T) {
