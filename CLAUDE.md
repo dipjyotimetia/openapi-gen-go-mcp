@@ -35,7 +35,7 @@ Refresh the generator golden file when output legitimately changes (then review 
 UPDATE_GOLDEN=1 go test ./pkg/generator/...
 ```
 
-End-to-end tests live in `internal/e2e/`. They exercise the generated example servers via the MCP stdio protocol; running them requires the example clients to already be generated (`make regen-examples` if you've changed the generator).
+End-to-end tests live in `tests/e2e/`. They exercise the generated example servers via the MCP stdio protocol; running them requires the example clients to already be generated (`make regen-examples` if you've changed the generator).
 
 CI runs on Go 1.26.x (matching the `go 1.26` directive in `go.mod`). Generated code itself only relies on standard-library features that have been available since Go 1.23, so downstream consumers can still compile the output against 1.23+.
 
@@ -53,7 +53,7 @@ pkg/runtime/gosdk/       Adapter for modelcontextprotocol/go-sdk
 pkg/runtime/mark3labs/   Adapter for mark3labs/mcp-go
 examples/                One end-to-end demo per backend / per spec dialect
 testdata/                Spec fixtures + golden generator output
-internal/e2e/            Black-box tests that drive the example servers over stdio; CLI integration tests
+tests/e2e/               Black-box tests that drive the example servers over stdio; CLI integration tests
 ```
 
 Two decoupling boundaries do most of the architectural work:

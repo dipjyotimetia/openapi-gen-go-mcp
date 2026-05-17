@@ -202,3 +202,47 @@ paths:
 		t.Errorf("companion mode must leave Security/Anonymous unset; got %+v", ops[0])
 	}
 }
+
+// TestRender_ProxyMode_NoServersFallback documents the runtime contract
+// for specs without a `servers:` block: the generated handler falls back
+// to API_BASE_URL with an empty default, so a user MUST set the env var
+// at runtime. A regression here (e.g. defaulting to "http://localhost"
+// or panicking) would silently send requests to the wrong place.
+func TestRender_ProxyMode_NoServersFallback(t *testing.T) {
+	spec := []byte(`openapi: 3.0.0
+info: { title: NoServers, version: "1.0" }
+paths:
+  /thing:
+    get:
+      operationId: getThing
+      responses:
+        "200": { description: ok }
+`)
+	tmp := filepath.Join(t.TempDir(), "spec.yaml")
+	if err := os.WriteFile(tmp, spec, 0o644); err != nil {
+		t.Fatalf("write: %v", err)
+	}
+	doc, err := loader.Load(context.Background(), tmp)
+	if err != nil {
+		t.Fatalf("load: %v", err)
+	}
+	got, err := Render(doc, Options{
+		Mode:        ModeProxy,
+		PackageName: "noservermcp",
+		ModulePath:  "example.com/noserver",
+	})
+	if err != nil {
+		t.Fatalf("render: %v", err)
+	}
+	src := string(got)
+	// The generated handler must read API_BASE_URL.
+	if !strings.Contains(src, `os.Getenv("API_BASE_URL")`) {
+		t.Errorf("expected API_BASE_URL fallback in generated source\n--src--\n%s", prefix(got, 1500))
+	}
+	// And the spec-side default must be the empty string (no servers[]).
+	// We assert by checking the literal `baseURL = ""` assignment the
+	// template emits after the env-var lookup.
+	if !strings.Contains(src, `baseURL = ""`) {
+		t.Errorf("expected empty-string spec default for no-servers spec\n--src--\n%s", prefix(got, 1500))
+	}
+}

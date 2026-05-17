@@ -26,7 +26,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **`runtime.ApplyAPIKey`, `runtime.ApplyBearer`, `runtime.ApplyBasic`** — public helpers used by the generated `applyAuth<Scheme>` functions; reusable from user code if needed.
 - **`runtime.DecodeProxyParam`, `runtime.BuildProxyURL`, `runtime.EncodeJSONBody`, `runtime.EncodeFormBody`, `runtime.ReadResponseBody`** — new helpers consumed by the proxy template (and available to anyone constructing their own proxies on top of the runtime).
 - **`generator.ParseSecuritySchemes` / `ResolveOperationSecurity`** — exported helpers that lower an OpenAPI 3 document's security model into the generator's `[]SecurityScheme` representation. Useful for tooling that wants to inspect a spec's auth surface without generating code.
-- **E2E coverage** — `internal/e2e/cli_proxy_test.go` builds the generated scaffold, runs it as an MCP stdio server, and verifies (a) `initialize` returns a result; (b) a Bearer token in `BEARER_TOKEN_<NAME>` reaches the upstream `Authorization` header; (c) a missing required credential surfaces in the MCP error response with the env-var name.
+- **E2E coverage** — `tests/e2e/cli_proxy_test.go` builds the generated scaffold, runs it as an MCP stdio server, and verifies (a) `initialize` returns a result; (b) a Bearer token in `BEARER_TOKEN_<NAME>` reaches the upstream `Authorization` header; (c) a missing required credential surfaces in the MCP error response with the env-var name.
 
 ### Fixed
 
@@ -50,7 +50,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **URL-based spec loading** — `loader.Load` now dispatches `http(s)://` paths to `loader.LoadFromURL(ctx, url, opts...)`, which enforces a 32 MiB body cap and a 30 s timeout (both `URLLoadOption`-configurable). The CLI's `-spec` flag accepts URLs without any extra ceremony.
 - **`loader.URLLoadOption` knobs** — `WithHTTPClient`, `WithMaxBodySize`, `WithTimeout` for custom transports / proxies / mTLS / auth headers.
 - **Collision detection at codegen time** — `Render` rejects `ClientImport` paths whose base segment collides with Go reserved words or with packages the generated file already imports (`context`, `json`, `runtime`), and refuses operations whose `ToolName`s mangle to the same const identifier (`get-pet` vs `get_pet` would have silently produced duplicate decls).
-- **CWD-robust e2e tests** — `internal/e2e/cli_test.go` now walks up looking for `go.mod` instead of assuming a fixed depth.
+- **CWD-robust e2e tests** — `tests/e2e/cli_test.go` now walks up looking for `go.mod` instead of assuming a fixed depth.
 - **`make smoke-all`** — exercises both the gosdk and mark3labs backends so adapter parity is verified at the protocol layer.
 
 ### Changed — robustness pass (Phase 1–4)
@@ -121,13 +121,13 @@ Initial public release.
 - End-to-end OpenAI-compat invariants test running across the petstore and non-JSON-bodies fixtures (`pkg/generator/openai_compat_test.go`).
 - Loader unit tests including `TestPruneNonJSONContent_KeepsRequestBodiesPrunesResponses` and `TestLoad_Swagger2_FormDataConverts`.
 - Runtime unit tests for every body builder (`BuildMultipartBody` covers form fields, file fields, multiple-files deterministic ordering, non-string file rejection, missing body; `BuildBase64BytesBody` / `BuildStringBody` cover the happy + wrong-type + missing paths).
-- Stdio end-to-end tests across 5 fixtures (`internal/e2e`):
+- Stdio end-to-end tests across 5 fixtures (`tests/e2e`):
   - **Petstore v3** — basic JSON body and primitive path/query (gosdk + mark3labs adapter parity).
   - **Users API v3** — UUID path params, multi-path params, required headers, PUT / PATCH / DELETE, no-param operations, bad-UUID error path.
   - **Library Swagger 2.0** — full v2 → v3 → oapi-codegen → MCP pipeline.
   - **Complex Schemas** — recursive `$ref` in `$defs`, oneOf, allOf, enums, date-time/uuid formats, nullable.
   - **Non-JSON bodies** — form / multipart (with file part byte-level verification) / octet (base64 round-trip) / text/plain / XML.
-- CLI integration tests (`internal/e2e/cli_test.go`): build sanity, `-list`, missing-flag exit, `-emit-v3` round-trip with response-only pruning, generated-file structural invariants.
+- CLI integration tests (`tests/e2e/cli_test.go`): build sanity, `-list`, missing-flag exit, `-emit-v3` round-trip with response-only pruning, generated-file structural invariants.
 
 ### Known limitations
 

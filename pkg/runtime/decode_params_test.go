@@ -15,7 +15,7 @@ import (
 
 // The Decode*Params functions are called from every generated handler, so
 // they need direct unit tests in addition to the e2e coverage from
-// internal/e2e/*. e2e only catches happy-path regressions; these tests pin
+// tests/e2e/*. e2e only catches happy-path regressions; these tests pin
 // the error semantics (status, code, ToolError shape) the generator
 // contract depends on.
 

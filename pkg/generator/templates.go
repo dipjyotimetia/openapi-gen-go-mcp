@@ -313,7 +313,7 @@ func {{.RegisterFunc}}(s runtime.MCPServer, opts ...runtime.Option) {
 
 			{{- if and (not .Anonymous) .Security}}
 			{{- range .Security}}
-			if err := applyAuth{{schemeFunc .Name}}(httpReq); err != nil {
+			if err := applyAuth{{pascalCase .Name}}(httpReq); err != nil {
 				return runtime.HandleError(err)
 			}
 			{{- end}}
@@ -339,9 +339,9 @@ func {{.RegisterFunc}}(s runtime.MCPServer, opts ...runtime.Option) {
 }
 
 {{range .AllSchemes}}
-// applyAuth{{schemeFunc .Name}} attaches credentials for the {{quote .Name}}
+// applyAuth{{pascalCase .Name}} attaches credentials for the {{quote .Name}}
 // security scheme to req, reading them from the environment.
-func applyAuth{{schemeFunc .Name}}(req *http.Request) error {
+func applyAuth{{pascalCase .Name}}(req *http.Request) error {
 {{- if eq (printf "%s" .Kind) "apiKey"}}
 	v := os.Getenv({{quote .EnvVar}})
 	if v == "" {
@@ -391,11 +391,11 @@ func templateFuncs() template.FuncMap {
 		"isTypedBody":   isTypedBody,
 		"fileFieldsLit": fileFieldsLit,
 		"callArgs":      callArgs,
-		// schemeFunc renders a SecurityScheme name as a Go identifier
-		// fragment for the per-scheme auth helper (e.g. "bearerAuth" →
-		// "BearerAuth", "api-key" → "ApiKey"). Mirrors PascalCase rules
-		// so the generated identifiers are visually consistent.
-		"schemeFunc": PascalCase,
+		// pascalCase renders an arbitrary identifier (currently security
+		// scheme names) as a Go-safe PascalCase fragment for use inside
+		// generated function names: "bearerAuth" → "BearerAuth",
+		// "api-key" → "ApiKey".
+		"pascalCase": PascalCase,
 	}
 }
 

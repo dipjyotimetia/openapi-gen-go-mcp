@@ -12,16 +12,30 @@ This document describes the structure of `openapi-go-mcp` — its packages, the 
 ## Package layout
 
 ```
-cmd/openapi-go-mcp/   # CLI entry point + batch orchestration loop
+cmd/openapi-go-mcp/       # CLI entry point + batch orchestration loop
 pkg/loader/               # OpenAPI 3.x + Swagger 2.0 ingestion; ExpandSpecArg
 pkg/batch/                # Per-spec option derivation, slug rules, collision detection
 pkg/generator/            # Operation collection, schema conversion, Go source emission
+pkg/generator/security.go # Spec securitySchemes → SecurityScheme; env-var derivation (proxy mode)
+pkg/generator/scaffold.go # main.go + go.mod + README emission (proxy mode)
 pkg/runtime/              # MCP-library-agnostic types (MCPServer, Tool, helpers)
+pkg/runtime/auth.go       # ApplyAPIKey / ApplyBearer / ApplyBasic + MissingCredentialError
+pkg/runtime/proxy.go      # DecodeProxyParam / BuildProxyURL / EncodeJSON|FormBody (proxy mode)
 pkg/runtime/gosdk/        # Adapter for modelcontextprotocol/go-sdk
 pkg/runtime/mark3labs/    # Adapter for mark3labs/mcp-go
 examples/                 # End-to-end demos (one per MCP backend, one for Swagger 2.0)
+tests/e2e/                # Black-box CLI + stdio MCP integration tests
 testdata/                 # Spec fixtures + golden generator output
 ```
+
+## Emission modes
+
+The generator runs in one of two modes, selected by `-mode` / `Options.Mode`:
+
+- **`companion`** (default, byte-for-byte stable, golden-test-guarded). Emits a single `<pkg>.mcp.go` file. The user supplies an `oapi-codegen` typed client, writes `main.go`, and wires authentication themselves. Use this mode when the MCP layer is one feature of a larger service binary.
+- **`proxy`** (`-mode=proxy`). Emits a runnable Go module — `main.go` + `go.mod` + `<pkg>/<pkg>.mcp.go` + `README.md`. Handlers construct `*http.Request` objects directly via the runtime helpers and dispatch through `cfg.HTTPClient.Do`. Authentication is wired automatically from the spec's `components.securitySchemes` using environment variables (see [`usage-patterns.md`](usage-patterns.md#pattern-13--standalone-proxy-server-zero-boilerplate)). No `oapi-codegen` step needed.
+
+Both modes share schema conversion, parameter decoding, response wrapping, `x-mcp` filtering, batch orchestration, and the MCP-library adapters. Only request construction and the auth helpers diverge — companion mode delegates to the typed client; proxy mode walks the operation and builds the request inline.
 
 ## Data flow
 

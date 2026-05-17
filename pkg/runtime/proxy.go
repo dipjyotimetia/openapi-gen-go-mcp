@@ -15,6 +15,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"slices"
 	"strings"
 )
 
@@ -182,7 +183,7 @@ func EncodeFormBody(args map[string]any) (io.Reader, string, error) {
 	for k := range raw {
 		keys = append(keys, k)
 	}
-	sortStringsInPlace(keys)
+	slices.Sort(keys)
 	for _, k := range keys {
 		s, err := stringifyParam(raw[k])
 		if err != nil {
@@ -206,20 +207,7 @@ func ReadResponseBody(resp *http.Response) ([]byte, error) {
 	if resp == nil || resp.Body == nil {
 		return nil, nil
 	}
+	// Drained body; close errors after io.ReadAll are not actionable.
 	defer func() { _ = resp.Body.Close() }()
 	return io.ReadAll(resp.Body)
-}
-
-// sortStringsInPlace is a tiny shim around sort.Strings used by
-// EncodeFormBody. We don't import "sort" in this file so the standard
-// helpers stay clustered in http.go; this thin wrapper keeps the import
-// graph clean and reads naturally at the call site.
-func sortStringsInPlace(s []string) {
-	// Manual insertion sort — n is small (number of form fields), and
-	// avoiding "sort" here keeps proxy.go's imports tight.
-	for i := 1; i < len(s); i++ {
-		for j := i; j > 0 && s[j-1] > s[j]; j-- {
-			s[j-1], s[j] = s[j], s[j-1]
-		}
-	}
 }

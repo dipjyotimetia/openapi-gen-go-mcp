@@ -30,7 +30,7 @@ import (
 // returns the diagnostics collected during rendering so the CLI can surface
 // them after a successful write.
 func generate(doc *openapi3.T, opts Options) ([]Diagnostic, error) {
-	src, diags, err := RenderWithDiagnostics(doc, opts)
+	src, ops, diags, err := renderWithOps(doc, opts)
 	if err != nil {
 		return diags, err
 	}
@@ -67,13 +67,9 @@ func generate(doc *openapi3.T, opts Options) ([]Diagnostic, error) {
 
 	// Proxy mode bundles a runnable main.go + go.mod + README alongside the
 	// .mcp.go so the output is a complete Go module the user can `go build`.
-	// Companion mode skips this; WriteScaffold is itself a no-op there but
-	// gating up-front avoids re-walking the operations for AllSchemes.
+	// Companion mode skips this; WriteScaffold is itself a no-op there. Ops
+	// are reused from the render step so we don't re-walk the spec.
 	if opts.Mode == ModeProxy {
-		ops, _, opErr := CollectOperations(doc, opts)
-		if opErr != nil {
-			return diags, fmt.Errorf("scaffold collect: %w", opErr)
-		}
 		if err := WriteScaffold(opts, doc, collectUsedSchemes(ops)); err != nil {
 			return diags, fmt.Errorf("scaffold: %w", err)
 		}
@@ -94,17 +90,27 @@ func Render(doc *openapi3.T, opts Options) ([]byte, error) {
 // slice is also non-nil when err != nil so callers can inspect what was
 // collected before the failure point.
 func RenderWithDiagnostics(doc *openapi3.T, opts Options) ([]byte, []Diagnostic, error) {
+	src, _, diags, err := renderWithOps(doc, opts)
+	return src, diags, err
+}
+
+// renderWithOps is the shared worker behind Render / RenderWithDiagnostics /
+// generate. It returns the rendered source plus the resolved []Operation so
+// callers that also need the operation list (e.g. the scaffold writer) don't
+// have to walk the spec a second time. Exported callers receive the same
+// data via the wrappers above.
+func renderWithOps(doc *openapi3.T, opts Options) ([]byte, []Operation, []Diagnostic, error) {
 	if err := opts.normalize(doc); err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 
 	ops, diags, err := CollectOperations(doc, opts)
 	if err != nil {
-		return nil, diags, err
+		return nil, nil, diags, err
 	}
 
 	if err := validateNoSchemaConstCollisions(ops); err != nil {
-		return nil, diags, err
+		return nil, nil, diags, err
 	}
 
 	var (
@@ -127,7 +133,7 @@ func RenderWithDiagnostics(doc *openapi3.T, opts Options) ([]byte, []Diagnostic,
 	default:
 		clientAlias = path.Base(opts.ClientImport)
 		if err := validateClientAlias(clientAlias); err != nil {
-			return nil, diags, err
+			return nil, nil, diags, err
 		}
 		clientImport = opts.ClientImport
 		extraImports = collectExtraImports(ops)
@@ -150,19 +156,19 @@ func RenderWithDiagnostics(doc *openapi3.T, opts Options) ([]byte, []Diagnostic,
 
 	tmpl, err := template.New("mcp").Funcs(templateFuncs()).Parse(tmplSrc)
 	if err != nil {
-		return nil, diags, fmt.Errorf("parse template: %w", err)
+		return nil, nil, diags, fmt.Errorf("parse template: %w", err)
 	}
 	var buf bytes.Buffer
 	if err := tmpl.Execute(&buf, view); err != nil {
-		return nil, diags, fmt.Errorf("execute template: %w", err)
+		return nil, nil, diags, fmt.Errorf("execute template: %w", err)
 	}
 
 	formatted, err := format.Source(buf.Bytes())
 	if err != nil {
 		// Return the unformatted source so the caller can inspect the failure.
-		return buf.Bytes(), diags, fmt.Errorf("gofmt: %w", err)
+		return buf.Bytes(), ops, diags, fmt.Errorf("gofmt: %w", err)
 	}
-	return formatted, diags, nil
+	return formatted, ops, diags, nil
 }
 
 // defaultBaseURL returns the spec's first declared server URL, or "" when

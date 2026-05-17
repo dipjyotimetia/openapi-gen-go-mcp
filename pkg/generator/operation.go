@@ -12,6 +12,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"go/token"
+	"maps"
 	"os"
 	"regexp"
 	"slices"
@@ -281,17 +282,24 @@ func emitSpecDiagnostics(doc *openapi3.T, sink *diagSink, mode Mode) {
 		return
 	}
 	if len(doc.Security) > 0 {
-		schemes := []string{}
-		for _, req := range doc.Security {
-			for name := range req {
-				schemes = append(schemes, name)
-			}
-		}
-		sort.Strings(schemes)
 		sink.info(DiagDroppedSecurityRequirement,
 			"#/security",
-			"global security requirement is informational; supply credentials via runtime.WithExtraProperties or an HTTP client request editor. Schemes referenced: "+strings.Join(slices.Compact(schemes), ", "))
+			"global security requirement is informational; supply credentials via runtime.WithExtraProperties or an HTTP client request editor. Schemes referenced: "+strings.Join(dedupSchemeNames(doc.Security), ", "))
 	}
+}
+
+// dedupSchemeNames returns the alphabetically-sorted, deduplicated set of
+// security-scheme names referenced anywhere in reqs. OpenAPI's
+// SecurityRequirements is a slice of maps (the outer slice is "or",
+// the inner map is "and"); we flatten and dedupe for diagnostic output.
+func dedupSchemeNames(reqs openapi3.SecurityRequirements) []string {
+	seen := map[string]struct{}{}
+	for _, req := range reqs {
+		for name := range req {
+			seen[name] = struct{}{}
+		}
+	}
+	return slices.Sorted(maps.Keys(seen))
 }
 
 var pathParamRe = regexp.MustCompile(`\{([^}]+)\}`)
@@ -341,18 +349,10 @@ func buildOperation(item *openapi3.PathItem, op *openapi3.Operation, method, pat
 			"callbacks are not modelled as MCP tools; dropped: "+strings.Join(names, ", "))
 	}
 	if op.Security != nil && len(*op.Security) > 0 && opts.Mode != ModeProxy {
-		// Proxy mode wires per-op security automatically via env vars;
-		// suppress the informational "drop" diagnostic there to avoid
-		// telling the user to do redundant manual work.
-		schemes := []string{}
-		for _, req := range *op.Security {
-			for name := range req {
-				schemes = append(schemes, name)
-			}
-		}
-		sort.Strings(schemes)
+		// Proxy mode wires this automatically from env vars; the diagnostic
+		// would mislead the user into doing redundant manual work.
 		sink.info(DiagDroppedSecurityRequirement, opPath,
-			"per-operation security requirement is informational; supply credentials via runtime.WithExtraProperties / request editor. Schemes: "+strings.Join(slices.Compact(schemes), ", "))
+			"per-operation security requirement is informational; supply credentials via runtime.WithExtraProperties / request editor. Schemes: "+strings.Join(dedupSchemeNames(*op.Security), ", "))
 	}
 
 	if op.RequestBody != nil && op.RequestBody.Value != nil {
